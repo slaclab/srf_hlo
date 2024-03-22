@@ -1,6 +1,6 @@
 import dataclasses
+import unittest
 from typing import Optional, List
-from unittest import TestCase
 
 from lcls_tools.common.controls.pyepics.utils import PV
 from lcls_tools.superconducting.sc_linac import Cavity, Linac, Machine
@@ -92,7 +92,7 @@ class HLOLinac(Linac):
 HLO_MACHINE = Machine(cavity_class=HLOCavity, linac_class=HLOLinac)
 
 
-class TestSolution(TestCase):
+class TestSolution(unittest.TestCase):
     def test_l1(self):
         l1: HLOLinac = HLO_MACHINE.linacs[1]
         print(f"L1 current heat: {l1.current_heat()}")
@@ -108,3 +108,7 @@ class TestSolution(TestCase):
         print(solution)
         self.assertEqual(len(solution.x), len(L2B) * 8)
         self.assertTrue(solution.fun <= l2.current_heat())
+
+
+if __name__ == "__main__":
+    unittest.main()
