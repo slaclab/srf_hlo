@@ -1,8 +1,10 @@
 import dataclasses
 from typing import Optional, List
+from unittest import TestCase
 
 from lcls_tools.common.controls.pyepics.utils import PV
 from lcls_tools.superconducting.sc_linac import Cavity, Linac, Machine
+from lcls_tools.superconducting.sc_linac_utils import L2B, L1B, L1BHL
 from scipy.optimize import minimize
 
 
@@ -24,7 +26,7 @@ class HLOCavity(Cavity):
 
     @property
     def current_heat(self):
-        return self.heat(self.ades)
+        return self.heat(self.acon)
 
     @dataclasses.dataclass
     class Bounds:
@@ -88,8 +90,21 @@ class HLOLinac(Linac):
 
 
 HLO_MACHINE = Machine(cavity_class=HLOCavity, linac_class=HLOLinac)
-l2: HLOLinac = HLO_MACHINE.linacs[2]
-print(l2.current_heat())
-solution = l2.solution(PV("ACCL:L2B:1:AACTMEANSUM").get())
-print(solution)
-print(solution.x)
+
+
+class TestSolution(TestCase):
+    def test_l1(self):
+        l1: HLOLinac = HLO_MACHINE.linacs[1]
+        print(f"L1 current heat: {l1.current_heat()}")
+        solution = l1.solution(PV("ACCL:L2B:1:AACTMEANSUM").get())
+        print(solution)
+        self.assertEqual(len(solution.x), (len(L1B) + len(L1BHL)) * 8)
+        self.assertTrue(solution.fun <= l1.current_heat())
+
+    def test_l2(self):
+        l2: HLOLinac = HLO_MACHINE.linacs[2]
+        print(f"L2 current heat: {l2.current_heat()}")
+        solution = l2.solution(PV("ACCL:L2B:1:AACTMEANSUM").get())
+        print(solution)
+        self.assertEqual(len(solution.x), len(L2B) * 8)
+        self.assertTrue(solution.fun <= l2.current_heat())
