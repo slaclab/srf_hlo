@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Optional, List
 
 from lcls_tools.common.controls.pyepics.utils import PV
@@ -20,6 +21,22 @@ class HLOCavity(Cavity):
     def heat(self, amplitude: float) -> float:
         r_over_q = 1012
         return ((amplitude * 1e6) ** 2) / (r_over_q * self.q0)
+
+    @dataclasses.dataclass
+    class Bounds:
+        lower: float
+        upper: float
+
+        @property
+        def tuple(self):
+            return self.lower, self.upper
+
+    @property
+    def bounds(self):
+        if not self.is_online:
+            return self.Bounds(lower=0, upper=0)
+        else:
+            return self.Bounds(lower=5, upper=self.ades_max)
 
 
 class HLOLinac(Linac):
@@ -56,8 +73,10 @@ class HLOLinac(Linac):
             fun=self.cost,
             x0=[desired_mv / len(self.cavities) for _ in self.cavities],
             constraints={"type": "eq", "fun": constraint},
+            bounds=((cavity.bounds.tuple for cavity in self.cavities)),
         )
 
 
 HLO_MACHINE = Machine(cavity_class=HLOCavity, linac_class=HLOLinac)
-print(HLO_MACHINE.linacs[0].solution(150))
+solution = HLO_MACHINE.linacs[2].solution(1600)
+print(solution.x)
