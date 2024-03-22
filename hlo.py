@@ -101,6 +101,12 @@ class TestSolution(unittest.TestCase):
         self.assertEqual(len(solution.x), (len(L1B) + len(L1BHL)) * 8)
         self.assertTrue(solution.fun <= l1.current_heat())
 
+        for cavity_obj, proposed_amp in zip(l1.cavities, solution.x):
+            if cavity_obj.acon != proposed_amp:
+                print(
+                    f"{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
+                )
+
     def test_l2(self):
         l2: HLOLinac = HLO_MACHINE.linacs[2]
         print(f"L2 current heat: {l2.current_heat()}")
@@ -108,6 +114,12 @@ class TestSolution(unittest.TestCase):
         print(solution)
         self.assertEqual(len(solution.x), len(L2B) * 8)
         self.assertTrue(solution.fun <= l2.current_heat())
+
+        for cavity_obj, proposed_amp in zip(l2.cavities, solution.x):
+            if cavity_obj.acon != proposed_amp:
+                print(
+                    f"{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
+                )
 
 
 if __name__ == "__main__":
