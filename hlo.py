@@ -22,6 +22,10 @@ class HLOCavity(Cavity):
         r_over_q = 1012
         return ((amplitude * 1e6) ** 2) / (r_over_q * self.q0)
 
+    @property
+    def current_heat(self):
+        return self.heat(self.ades)
+
     @dataclasses.dataclass
     class Bounds:
         lower: float
@@ -59,6 +63,12 @@ class HLOLinac(Linac):
             for cavity_obj in cm_obj.cavities.values():
                 self.cavities.append(cavity_obj)
 
+    def current_heat(self):
+        heat = 0
+        for cavity in self.cavities:
+            heat += cavity.current_heat
+        return heat
+
     def cost(self, amplitudes: List[float]):
         cost = 0
         for cavity, amplitude in zip(self.cavities, amplitudes):
@@ -78,5 +88,8 @@ class HLOLinac(Linac):
 
 
 HLO_MACHINE = Machine(cavity_class=HLOCavity, linac_class=HLOLinac)
-solution = HLO_MACHINE.linacs[2].solution(1600)
+l2: HLOLinac = HLO_MACHINE.linacs[2]
+print(l2.current_heat())
+solution = l2.solution(PV("ACCL:L2B:1:AACTMEANSUM").get())
+print(solution)
 print(solution.x)
