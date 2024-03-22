@@ -4,7 +4,7 @@ from typing import Optional, List
 
 from lcls_tools.common.controls.pyepics.utils import PV
 from lcls_tools.superconducting.sc_linac import Cavity, Linac, Machine
-from lcls_tools.superconducting.sc_linac_utils import L2B, L1B, L1BHL
+from lcls_tools.superconducting.sc_linac_utils import LINAC_CM_MAP
 from scipy.optimize import minimize
 
 
@@ -93,33 +93,31 @@ HLO_MACHINE = Machine(cavity_class=HLOCavity, linac_class=HLOLinac)
 
 
 class TestSolution(unittest.TestCase):
-    def test_l1(self):
-        l1: HLOLinac = HLO_MACHINE.linacs[1]
-        print(f"L1 current heat: {l1.current_heat()}")
-        solution = l1.solution(PV("ACCL:L2B:1:AACTMEANSUM").get())
+    def test_linac(self, idx):
+        linac: HLOLinac = HLO_MACHINE.linacs[idx]
+        print(f"L{idx} current heat: {linac.current_heat()}")
+        solution = linac.solution(PV(f"ACCL:L{idx}B:1:AACTMEANSUM").get())
         print(solution)
-        self.assertEqual(len(solution.x), (len(L1B) + len(L1BHL)) * 8)
-        self.assertTrue(solution.fun <= l1.current_heat())
+        self.assertEqual(len(solution.x), len(LINAC_CM_MAP[idx]) * 8)
+        self.assertTrue(solution.fun <= linac.current_heat())
 
-        for cavity_obj, proposed_amp in zip(l1.cavities, solution.x):
+        for cavity_obj, proposed_amp in zip(linac.cavities, solution.x):
             if round(cavity_obj.acon, 2) != round(proposed_amp, 2):
                 print(
                     f"{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
                 )
+
+    def test_l0(self):
+        self.test_linac(0)
+
+    def test_l1(self):
+        self.test_linac(1)
 
     def test_l2(self):
-        l2: HLOLinac = HLO_MACHINE.linacs[2]
-        print(f"L2 current heat: {l2.current_heat()}")
-        solution = l2.solution(PV("ACCL:L2B:1:AACTMEANSUM").get())
-        print(solution)
-        self.assertEqual(len(solution.x), len(L2B) * 8)
-        self.assertTrue(solution.fun <= l2.current_heat())
+        self.test_linac(2)
 
-        for cavity_obj, proposed_amp in zip(l2.cavities, solution.x):
-            if round(cavity_obj.acon, 2) != round(proposed_amp, 2):
-                print(
-                    f"{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
-                )
+    def test_l3(self):
+        self.test_linac(3)
 
 
 if __name__ == "__main__":
