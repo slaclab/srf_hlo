@@ -16,6 +16,10 @@ class HLOCavity(Cavity):
 
     @property
     def q0(self):
+        """
+        Get the stored Q0 value of the cavity
+        @return:
+        """
         if not self._q0_pv_obj:
             self._q0_pv_obj = PV(self.q0_pv)
         return self._q0_pv_obj.get()
@@ -38,7 +42,11 @@ class HLOCavity(Cavity):
             return self.lower, self.upper
 
     @property
-    def bounds(self):
+    def bounds(self) -> Bounds:
+        """
+        An upper and lower amplitude limit for this cavity (0 if not online)
+        @return: Bounds object with upper and lower limit
+        """
         if not self.is_online:
             return self.Bounds(lower=0, upper=0)
         else:
@@ -72,13 +80,31 @@ class HLOLinac(Linac):
         return heat
 
     def cost(self, amplitudes: List[float]):
+        """
+        Calculate the total linac heat for a list of cavity amplitudes
+        @param amplitudes: list of cavity amplitudes
+        @return: heat
+        """
         cost = 0
         for cavity, amplitude in zip(self.cavities, amplitudes):
             cost += cavity.heat(amplitude)
         return cost
 
     def solution(self, desired_mv: float):
+        """
+        Given a desired linac amplitude, find the list of cavity amplitudes that
+        generates the least amount of heat
+        @param desired_mv: desired linac amplitude in MV
+        @return: OptimizeResult
+        """
+
         def constraint(amplitudes: List[float]):
+            """
+            constraint function to set to 0
+            @param amplitudes: list of cavity amplitudes
+            @return: difference between the sum of the proposed amplitudes and
+                     the desired amplitude
+            """
             return sum(amplitudes) - desired_mv
 
         return minimize(
@@ -94,6 +120,12 @@ HLO_MACHINE = Machine(cavity_class=HLOCavity, linac_class=HLOLinac)
 
 class TestSolution(unittest.TestCase):
     def test_linac(self, idx):
+        """
+        I can't figure out how to skip this test without skipping the others, so
+        for right now expect it to fail
+        @param idx: linac index in range(0,4)
+        @return: None
+        """
         linac: HLOLinac = HLO_MACHINE.linacs[idx]
         print(f"\033[96mL{idx} current heat: {linac.current_heat()}\033[0m")
         solution = linac.solution(PV(f"ACCL:L{idx}B:1:AACTMEANSUM").get())
