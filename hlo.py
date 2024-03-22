@@ -95,7 +95,7 @@ HLO_MACHINE = Machine(cavity_class=HLOCavity, linac_class=HLOLinac)
 class TestSolution(unittest.TestCase):
     def test_linac(self, idx):
         linac: HLOLinac = HLO_MACHINE.linacs[idx]
-        print(f"L{idx} current heat: {linac.current_heat()}")
+        print(f"\033[96mL{idx} current heat: {linac.current_heat()}")
         solution = linac.solution(PV(f"ACCL:L{idx}B:1:AACTMEANSUM").get())
         print(solution)
         self.assertEqual(len(solution.x), len(LINAC_CM_MAP[idx]) * 8)
@@ -104,7 +104,7 @@ class TestSolution(unittest.TestCase):
         for cavity_obj, proposed_amp in zip(linac.cavities, solution.x):
             if round(cavity_obj.acon, 2) != round(proposed_amp, 2):
                 print(
-                    f"{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
+                    f"\033[96m{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
                 )
 
     def test_l0(self):
