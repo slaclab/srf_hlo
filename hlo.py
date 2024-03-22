@@ -102,7 +102,7 @@ class TestSolution(unittest.TestCase):
         self.assertTrue(solution.fun <= l1.current_heat())
 
         for cavity_obj, proposed_amp in zip(l1.cavities, solution.x):
-            if cavity_obj.acon != proposed_amp:
+            if round(cavity_obj.acon, 2) != round(proposed_amp, 2):
                 print(
                     f"{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
                 )
@@ -116,7 +116,7 @@ class TestSolution(unittest.TestCase):
         self.assertTrue(solution.fun <= l2.current_heat())
 
         for cavity_obj, proposed_amp in zip(l2.cavities, solution.x):
-            if cavity_obj.acon != proposed_amp:
+            if round(cavity_obj.acon, 2) != round(proposed_amp, 2):
                 print(
                     f"{cavity_obj} currently at {cavity_obj.acon}, proposing {proposed_amp}"
                 )
