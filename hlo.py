@@ -42,7 +42,7 @@ class HLOCavity(Cavity):
         if not self.is_online:
             return self.Bounds(lower=0, upper=0)
         else:
-            return self.Bounds(lower=5, upper=self.ades_max)
+            return self.Bounds(lower=0, upper=self.ades_max)
 
 
 class HLOLinac(Linac):
